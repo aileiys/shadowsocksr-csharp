@@ -33,11 +33,61 @@ namespace Shadowsocks.Obfs
             base.SetServerInfo(serverInfo);
         }
 
+        public int LinearRandomInt(int max)
+        {
+            return random.Next(max);
+        }
+
+        public int NonLinearRandomInt(int max)
+        {
+            int r1, r2;
+            if ((max & 1) == 1)
+            {
+                int mid = (max + 1) >> 1;
+                r1 = random.Next(mid);
+                r2 = random.Next(mid + 1);
+                int r = r1 + r2;
+                if (r == max) return mid - 1;
+                if (r < mid) return mid - r - 1;
+                else return max - r + mid - 1;
+            }
+            else
+            {
+                int mid = max >> 1;
+                r1 = random.Next(mid);
+                r2 = random.Next(mid + 1);
+                int r = r1 + r2;
+                if (r < mid) return mid - r - 1;
+                else return max - r + mid - 1;
+            }
+        }
+
+        public double TrapezoidRandomFloat(double d) // －1 <= d <= 1
+        {
+            if (d == 0)
+                return random.NextDouble();
+
+            double s = random.NextDouble();
+            //(2dx + 2(1 - d))x/2 = s
+            //dx^2 + (1-d)x - s = 0
+            double a = 1 - d;
+            //dx^2 + ax - s = 0
+            //[-a + sqrt(a^2 + 4ds)] / 2d
+            return (Math.Sqrt(a * a + 4 * d * s) - a) / (2 * d);
+        }
+
+        public int TrapezoidRandomInt(int max, double d)
+        {
+            double v = TrapezoidRandomFloat(d);
+            return (int)(v * max);
+        }
+
         public override byte[] ClientEncode(byte[] encryptdata, int datalength, out int outlength)
         {
             outlength = datalength;
             return encryptdata;
         }
+
         public override byte[] ClientDecode(byte[] encryptdata, int datalength, out int outlength, out bool needsendback)
         {
             outlength = datalength;
@@ -79,6 +129,11 @@ namespace Shadowsocks.Obfs
 
         public override byte[] ClientPreEncrypt(byte[] plaindata, int datalength, out int outlength)
         {
+            if (plaindata == null)
+            {
+                outlength = 0;
+                return plaindata;
+            }
             byte[] outdata = new byte[datalength + datalength / 10 + 32];
             byte[] packdata = new byte[9000];
             byte[] data = plaindata;
@@ -181,6 +236,11 @@ namespace Shadowsocks.Obfs
 
         public override byte[] ClientPreEncrypt(byte[] plaindata, int datalength, out int outlength)
         {
+            if (plaindata == null)
+            {
+                outlength = 0;
+                return plaindata;
+            }
             byte[] outdata = new byte[datalength + datalength / 10 + 32];
             byte[] packdata = new byte[32768];
             byte[] data = plaindata;
@@ -324,6 +384,11 @@ namespace Shadowsocks.Obfs
 
         public override byte[] ClientPreEncrypt(byte[] plaindata, int datalength, out int outlength)
         {
+            if (plaindata == null)
+            {
+                outlength = 0;
+                return plaindata;
+            }
             byte[] outdata = new byte[datalength + datalength / 10 + 32];
             byte[] packdata = new byte[9000];
             byte[] data = plaindata;

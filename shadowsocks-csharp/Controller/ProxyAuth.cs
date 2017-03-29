@@ -213,7 +213,8 @@ namespace Shadowsocks.Controller
                 _connection.Send(response);
                 HandshakeAuthReceiveCallback();
             }
-            else if (no_auth)
+            else if (no_auth && (string.IsNullOrEmpty(_config.authUser)
+                || Util.Utils.isMatchSubNet(((IPEndPoint)_connection.RemoteEndPoint).Address, "127.0.0.0/8")))
             {
                 _connection.Send(response);
                 HandshakeReceive2Callback();
@@ -503,8 +504,8 @@ namespace Shadowsocks.Controller
 
         private void Connect()
         {
-            Handler.GetCurrentServer getCurrentServer = delegate (ServerSelectStrategy.FilterFunc filter, string targetURI, bool cfgRandom, bool usingRandom, bool forceRandom) { return _config.GetCurrentServer(filter, targetURI, cfgRandom, usingRandom, forceRandom); };
-            Handler.KeepCurrentServer keepCurrentServer = delegate (string targetURI, string id) { _config.KeepCurrentServer(targetURI, id); };
+            Handler.GetCurrentServer getCurrentServer = delegate (int localPort, ServerSelectStrategy.FilterFunc filter, string targetURI, bool cfgRandom, bool usingRandom, bool forceRandom) { return _config.GetCurrentServer(localPort, filter, targetURI, cfgRandom, usingRandom, forceRandom); };
+            Handler.KeepCurrentServer keepCurrentServer = delegate (int localPort, string targetURI, string id) { _config.KeepCurrentServer(localPort, targetURI, id); };
 
             int local_port = ((IPEndPoint)_connection.LocalEndPoint).Port;
             Handler handler = new Handler();
