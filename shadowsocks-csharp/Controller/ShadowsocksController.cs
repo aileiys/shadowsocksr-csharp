@@ -24,8 +24,6 @@ namespace Shadowsocks.Controller
         // manipulates UI
         // interacts with low level logic
 
-        private Thread _ramThread;
-
         private Listener _listener;
         private List<Listener> _port_map_listener;
         private PACServer _pacServer;
@@ -558,22 +556,6 @@ namespace Shadowsocks.Controller
         {
             if (UpdatePACFromGFWListError != null)
                 UpdatePACFromGFWListError(sender, e);
-        }
-
-        private void StartReleasingMemory()
-        {
-            _ramThread = new Thread(new ThreadStart(ReleaseMemory));
-            _ramThread.IsBackground = true;
-            _ramThread.Start();
-        }
-
-        private void ReleaseMemory()
-        {
-            while (true)
-            {
-                Util.Utils.ReleaseMemory();
-                Thread.Sleep(30 * 1000);
-            }
         }
 
         public void ShowConfigForm(int index)
